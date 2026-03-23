@@ -1,0 +1,68 @@
+$kind: http-request
+description: Fetches an account by id along with its balance
+url: '{{baseUrl}}/accounts/:id'
+method: GET
+pathVariables:
+  - key: id
+    value: '{{accountId}}'
+    description: The account ID
+scripts:
+  - type: afterResponse
+    code: |-
+      const jsonData = pm.response.json();
+      const account = jsonData.account;
+
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Response time is under 1000ms', function () {
+          pm.expect(pm.response.responseTime).to.be.below(1000);
+      });
+
+      pm.test('Content-Type is application/json', function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+
+      pm.test('Response has account object and balance', function () {
+          pm.expect(jsonData).to.have.property('account');
+          pm.expect(jsonData).to.have.property('balance');
+      });
+
+      pm.test('Account has required fields', function () {
+          pm.expect(account).to.have.property('id');
+          pm.expect(account).to.have.property('userId');
+          pm.expect(account).to.have.property('type');
+          pm.expect(account).to.have.property('createdAt');
+      });
+
+      pm.test('Account field types are correct', function () {
+          pm.expect(account.id).to.be.a('string').and.not.empty;
+          pm.expect(account.userId).to.be.a('string').and.not.empty;
+          pm.expect(account.type).to.be.a('string').and.not.empty;
+          pm.expect(account.createdAt).to.be.a('string').and.not.empty;
+      });
+
+      pm.test('Account id matches requested id', function () {
+          const requestedId = pm.collectionVariables.get('accountId');
+          if (requestedId) {
+              pm.expect(account.id).to.equal(requestedId);
+          }
+      });
+
+      pm.test('Balance is a non-negative number', function () {
+          pm.expect(jsonData.balance).to.be.a('number');
+          pm.expect(jsonData.balance).to.be.at.least(0);
+      });
+
+      pm.test('Account createdAt is a valid ISO date', function () {
+          const date = new Date(account.createdAt);
+          pm.expect(date.toString()).to.not.equal('Invalid Date');
+      });
+
+      pm.test('Response only contains account and balance fields', function () {
+          const keys = Object.keys(jsonData).sort();
+          pm.expect(keys).to.deep.equal(['account', 'balance']);
+      });
+    language: text/javascript
+order: 2000

@@ -1,0 +1,90 @@
+$kind: http-request
+description: Creates a user, creates an account, optionally credits it, and assigns a product via the catalog service
+url: '{{baseUrl}}/accounts/onboard'
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+    	"name": "John Doe",
+    	"email": "john@example.com",
+    	"productId": "product-123",
+    	"initialCredit": 50
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const jsonData = pm.response.json();
+      const { user, account, assignment, balance } = jsonData;
+
+      pm.test('Status code is 201', function () {
+          pm.response.to.have.status(201);
+      });
+
+      pm.test('Response time is under 2000ms', function () {
+          pm.expect(pm.response.responseTime).to.be.below(2000);
+      });
+
+      pm.test('Content-Type is application/json', function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+
+      pm.test('Response has user, account, assignment, and balance', function () {
+          pm.expect(jsonData).to.have.property('user');
+          pm.expect(jsonData).to.have.property('account');
+          pm.expect(jsonData).to.have.property('assignment');
+          pm.expect(jsonData).to.have.property('balance');
+      });
+
+      pm.test('User has required fields', function () {
+          pm.expect(user).to.have.property('id');
+          pm.expect(user).to.have.property('name');
+          pm.expect(user).to.have.property('email');
+      });
+
+      pm.test('User field types are correct', function () {
+          pm.expect(user.id).to.be.a('string').and.not.empty;
+          pm.expect(user.name).to.be.a('string').and.not.empty;
+          pm.expect(user.email).to.be.a('string').and.not.empty;
+      });
+
+      pm.test('User name and email match request', function () {
+          pm.expect(user.name).to.equal('John Doe');
+          pm.expect(user.email).to.equal('john@example.com');
+      });
+
+      pm.test('Account has required fields', function () {
+          pm.expect(account).to.have.property('id');
+          pm.expect(account).to.have.property('userId');
+          pm.expect(account).to.have.property('type');
+          pm.expect(account).to.have.property('createdAt');
+      });
+
+      pm.test('Account field types are correct', function () {
+          pm.expect(account.id).to.be.a('string').and.not.empty;
+          pm.expect(account.userId).to.be.a('string').and.not.empty;
+          pm.expect(account.type).to.be.a('string').and.not.empty;
+          pm.expect(account.createdAt).to.be.a('string').and.not.empty;
+      });
+
+      pm.test('Account userId matches created user', function () {
+          pm.expect(account.userId).to.equal(user.id);
+      });
+
+      pm.test('Account createdAt is a valid ISO date', function () {
+          const date = new Date(account.createdAt);
+          pm.expect(date.toString()).to.not.equal('Invalid Date');
+      });
+
+      pm.test('Balance reflects initialCredit', function () {
+          pm.expect(balance).to.be.a('number');
+          pm.expect(balance).to.equal(50);
+      });
+
+      pm.test('Assignment is an object', function () {
+          pm.expect(assignment).to.be.an('object');
+      });
+    language: text/javascript
+order: 5000

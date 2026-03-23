@@ -1,0 +1,29 @@
+name: Lint OpenAPI Spec
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'postman/specs/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'postman/specs/**'
+
+jobs:
+  lint-spec:
+    name: Lint OpenAPI Spec
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      - name: Lint OpenAPI Spec
+        run: postman api lint 51415495-d081ca0f-8280-44f8-a4ea-592c6ce2d705

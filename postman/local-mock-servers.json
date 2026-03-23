@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "workspaceId": "378b7f75-af17-4ead-b94a-1022cb59490a",
+  "mockServers": [
+    {
+      "name": "Dependencies Mock",
+      "script": "./mocks/dependencies-mock.js",
+      "description": "Local mock server for external service dependencies. Spins up two HTTP servers: Identity API mock on port 3001 and Catalog API mock on port 3003.",
+      "servers": [
+        {
+          "name": "Identity API Mock",
+          "port": 3001,
+          "routes": [
+            { "method": "GET", "path": "/health" },
+            { "method": "GET", "path": "/users/:userId" },
+            { "method": "POST", "path": "/users" }
+          ]
+        },
+        {
+          "name": "Catalog API Mock",
+          "port": 3003,
+          "routes": [
+            { "method": "GET", "path": "/health" },
+            { "method": "POST", "path": "/products/:productId/assign" }
+          ]
+        }
+      ]
+    }
+  ]
+}

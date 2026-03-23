@@ -1,0 +1,93 @@
+extends:
+  - spectral:oas
+
+rules:
+  # Require all operations to have a summary
+  operation-summary:
+    description: Every operation must have a summary
+    given: "$.paths[*][*]"
+    severity: warn
+    then:
+      field: summary
+      function: truthy
+
+  # Require all operations to have at least one tag
+  operation-tags:
+    description: Every operation must have at least one tag
+    given: "$.paths[*][*]"
+    severity: warn
+    then:
+      field: tags
+      function: truthy
+
+  # Require all operations to have a description
+  operation-description:
+    description: Every operation should have a description
+    given: "$.paths[*][*]"
+    severity: hint
+    then:
+      field: description
+      function: truthy
+
+  # Require all schemas to have a description
+  schema-description:
+    description: All schemas in components should have a description
+    given: "$.components.schemas[*]"
+    severity: hint
+    then:
+      field: description
+      function: truthy
+
+  # Disallow 'x-' vendor extensions at the root level
+  no-root-vendor-extensions:
+    description: Avoid vendor extensions at the root level
+    given: "$"
+    severity: hint
+    then:
+      field: "x-"
+      function: falsy
+
+  # Require contact info in the info block
+  info-contact:
+    description: API info should include contact details
+    given: "$.info"
+    severity: hint
+    then:
+      field: contact
+      function: truthy
+
+  # Require a license in the info block
+  info-license:
+    description: API info should include a license
+    given: "$.info"
+    severity: hint
+    then:
+      field: license
+      function: truthy
+
+  # All 2xx responses should have a response body schema defined
+  response-schema-defined:
+    description: All 2xx responses should define a schema
+    given: "$.paths[*][*].responses[?(@property >= '200' && @property < '300')]"
+    severity: warn
+    then:
+      field: content
+      function: truthy
+
+  # Parameters should have descriptions
+  parameter-description:
+    description: All parameters should have a description
+    given: "$.paths[*][*].parameters[*]"
+    severity: warn
+    then:
+      field: description
+      function: truthy
+
+  # Request bodies should have descriptions
+  request-body-description:
+    description: Request bodies should have a description
+    given: "$.paths[*][*].requestBody"
+    severity: hint
+    then:
+      field: description
+      function: truthy
