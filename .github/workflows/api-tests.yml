@@ -21,12 +21,33 @@ jobs:
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
 
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Start dependency mock servers
+        run: node postman/mocks/dependencies-mock.js &
+
+      - name: Wait for mock servers to be ready
+        run: |
+          npx wait-on http://localhost:3001/health http://localhost:3003/health --timeout 15000
+
+      - name: Start accounts service
+        run: |
+          npm install
+          IDENTITY_BASE_URL=http://localhost:3001 CATALOG_BASE_URL=http://localhost:3003 node src/index.js &
+
+      - name: Wait for accounts service to be ready
+        run: npx wait-on http://localhost:3002/health --timeout 15000
+
       - name: Run Accounts API Collection
         run: |
           postman collection run 51415495-d081ca0f-8280-44f8-a4ea-592c6ce2d705 \
             --environment e643955a-c8e5-40c7-a728-d9742e44e8ce \
             --reporters cli,junit \
-            --reporter-junit-export results.xml
+            --reporter-junit-export results.xml \
+            --report-events
 
       - name: Upload test results
         if: always()

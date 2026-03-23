@@ -26,4 +26,4 @@ jobs:
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
 
       - name: Lint OpenAPI Spec
-        run: postman api lint f710abd8-5ef3-4895-acfb-0685d97a1a29
+        run: postman api lint f710abd8-5ef3-4895-acfb-0685d97a1a29 --report-events
